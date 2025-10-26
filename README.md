@@ -12,7 +12,7 @@ A beautiful, modern web application for generating AI images using Google's Gemi
 - **🌐 No Backend Required**: Pure client-side application
 
 ## 🚀 Live Demo
-[Try it now!](#)
+[[Try it now!](#)](https://simple-gemini-image-creator.vercel.app/)
 
 ## 🛠️ Technologies Used
 - Pure HTML5, CSS3, and Vanilla JavaScript
