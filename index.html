@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Image Generator - by Masuk Sharma</title>
+	<link rel="icon" type="image/png" href="https://res.cloudinary.com/djeu0bva3/image/upload/v1761426912/photo_2025-09-24_13-47-36_hlieus.jpg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header-section img {
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .subtitle a {
+            text-decoration: none;
+            color: #0078ff;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #718096;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            width: auto;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e6fffa;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-key-group {
+            position: relative;
+        }
+
+        .api-key-toggle {
+            position: absolute;
+            right: 15px;
+            top: 43px;
+            cursor: pointer;
+            color: #718096;
+            user-select: none;
+            font-size: 0.85em;
+        }
+
+        button.generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button.generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button.generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .result-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: auto;
+            margin: 0;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .error {
+            display: none;
+            background: #fed7d7;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #c53030;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            color: #234e52;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .info-box a {
+            color: #2c7a7b;
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .example-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .example-prompt {
+            padding: 6px 12px;
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-prompt:hover {
+            background: #e6fffa;
+            border-color: #81e6d9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-section img {
+                width: 80px;
+                height: 80px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .subtitle {
+                font-size: 0.85em;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .tab {
+                width: 100%;
+                padding: 10px 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section">
+            <img src="https://res.cloudinary.com/djeu0bva3/image/upload/v1761426912/photo_2025-09-24_13-47-36_hlieus.jpg" alt="Gemini Logo">
+            <div class="header-text">
+                <h1>Gemini Image Generator</h1>
+                <p class="subtitle">Text-to-Image & Image-to-Image with Google's Gemini 2.5 Nano Banana API</p>
+                <p class="subtitle">By <a href="mailto:masuk@masuksharma.in?subject=From%20Gemini%20Image%20Generator">Masuk Sharma</a></p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>Get your API key:</strong> Visit <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> to create a free Gemini API key.
+        </div>
+
+        <div class="input-group api-key-group">
+            <label for="apiKey">Gemini API Key</label>
+            <input 
+                type="password" 
+                id="apiKey" 
+                placeholder="Enter your Gemini API key"
+                required
+            >
+            <span class="api-key-toggle" id="apiKeyToggle">Show</span>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" id="tabTextToImage">📝 Text-to-Image</button>
+            <button class="tab" id="tabImageToImage">🖼️ Image-to-Image</button>
+        </div>
+
+        <div id="text-to-image" class="tab-content active">
+            <div>
+                <div class="input-group">
+                    <label for="textPrompt">Image Prompt</label>
+                    <textarea 
+                        id="textPrompt" 
+                        placeholder="Describe the image you want to create..."
+						rows = 7
+                    ></textarea>
+                </div>
+                <button type="button" class="generate-btn" id="textToImageBtn">Generate Image</button>
+            </div>
+        </div>
+
+        <div id="image-to-image" class="tab-content">
+            <div>
+                <div class="input-group">
+                    <label>Upload Reference Image</label>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📷</div>
+                        <p>Click to upload or drag & drop an image</p>
+                        <small>PNG, JPG, WEBP (max 10MB)</small>
+                    </div>
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <img id="previewImage" class="preview-image" style="display: none;">
+                </div>
+
+                <div class="input-group">
+                    <label for="imagePrompt">Transformation Prompt</label>
+                    <textarea 
+                        id="imagePrompt" 
+                        placeholder="Describe how you want to transform the image..."
+			rows = 7
+                    ></textarea>
+                </div>
+
+                <button type="button" class="generate-btn" id="imageToImageBtn">Transform Image</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your image... This may take a moment</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <h2>Generated Image</h2>
+            <img id="resultImage" class="result-image" alt="Generated image">
+            <br>
+            <button class="download-btn" id="downloadBtn">⬇️ Download Image</button>
+        </div>
+    </div>
+	
+	<script>
+		function logPromptToSheet(prompt, type) {
+		fetch("https://script.google.com/macros/s/AKfycbyu7_41DFGLTC-Py1BuLFWiTYJEyFuQCF7WbKxObaTCiADfG1HFlsWLUTaP9ZnHJTbgXg/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            prompt: prompt,
+            type: type
+        })
+    })
+    .then(res => res.text())
+    .then(res => console.log("Logged to Sheet:", res))
+    .catch(err => console.error("Error logging prompt:", err));
+}
+
+	</script>
+    <script>
+        var currentImageBase64 = null;
+        var uploadedImageBase64 = null;
+
+        function toggleApiKey() {
+            var input = document.getElementById('apiKey');
+            var toggle = document.getElementById('apiKeyToggle');
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                toggle.textContent = 'Show';
+            }
+        }
+
+        function switchTab(tabName) {
+            var tabs = document.querySelectorAll('.tab');
+            var contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            contents.forEach(function(content) {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'text-to-image') {
+                document.getElementById('tabTextToImage').classList.add('active');
+            } else {
+                document.getElementById('tabImageToImage').classList.add('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            hideResults();
+        }
+
+        function setPrompt(elementId, text) {
+            document.getElementById(elementId).value = text;
+        }
+
+        function hideResults() {
+            document.getElementById('result').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+        }
+
+        function handleImageUpload(file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var base64String = e.target.result;
+                uploadedImageBase64 = base64String.split(',')[1];
+                var previewImage = document.getElementById('previewImage');
+                previewImage.src = base64String;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showError(message) {
+            var error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function downloadResult() {
+            console.log('Download button clicked');
+            console.log('currentImageBase64:', currentImageBase64 ? 'exists (length: ' + currentImageBase64.length + ')' : 'null');
+            
+            if (!currentImageBase64) {
+                alert('No image to download. Please generate an image first.');
+                return;
+            }
+            
+            try {
+                var link = document.createElement('a');
+                link.href = 'data:image/png;base64,' + currentImageBase64;
+                link.download = 'gemini-image-' + Date.now() + '.png';
+                console.log('Creating download link:', link.href.substring(0, 100) + '...');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('Download initiated');
+            } catch (e) {
+                console.error('Download error:', e);
+                alert('Download failed: ' + e.message);
+            }
+        }
+
+        function generateImage(apiKey, prompt, imageBase64) {
+            var loading = document.getElementById('loading');
+            var result = document.getElementById('result');
+            var resultImage = document.getElementById('resultImage');
+            
+            loading.classList.add('active');
+            hideResults();
+            
+            var submitBtn = document.querySelector('.tab-content.active button.generate-btn');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            var parts = [];
+            
+            if (imageBase64) {
+                parts.push({
+                    inline_data: {
+                        mime_type: 'image/jpeg',
+                        data: imageBase64
+                    }
+                });
+                parts.push({
+                    text: prompt
+                });
+            } else {
+                parts.push({
+                    text: prompt
+                });
+            }
+
+            var requestBody = {
+                contents: [{
+                    parts: parts
+                }]
+            };
+
+            fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
+                method: 'POST',
+                headers: {
+                    'x-goog-api-key': apiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.json().then(function(errorData) {
+                        throw new Error(errorData.error ? errorData.error.message : 'API Error: ' + response.status);
+                    }).catch(function(err) {
+                        if (err.message.includes('API Error')) throw err;
+                        throw new Error('API Error: ' + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('Full API Response:', data);
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                    var parts = data.candidates[0].content.parts;
+                    console.log('Parts:', parts);
+                    console.log('First part:', parts[0]);
+                    console.log('Keys in first part:', Object.keys(parts[0]));
+                    
+                    var imagePart = null;
+                    
+                    for (var i = 0; i < parts.length; i++) {
+                        console.log('Checking part', i, ':', parts[i]);
+                        console.log('Has inlineData?', parts[i].hasOwnProperty('inlineData'));
+                        console.log('Has inline_data?', parts[i].hasOwnProperty('inline_data'));
+                        
+                        if (parts[i].inlineData || parts[i].inline_data) {
+                            imagePart = parts[i];
+                            console.log('Found image part at index', i);
+                            break;
+                        }
+                    }
+                    
+                    if (imagePart) {
+                        console.log('Image part found:', imagePart);
+                        
+                        var inlineData = imagePart.inlineData || imagePart.inline_data;
+                        console.log('inlineData object:', inlineData);
+                        
+                        var imageData = inlineData.data;
+                        var mimeType = inlineData.mimeType || inlineData.mime_type || 'image/png';
+                        
+                        console.log('Image data length:', imageData ? imageData.length : 'null');
+                        console.log('MIME type:', mimeType);
+                        
+                        currentImageBase64 = imageData;
+                        resultImage.src = 'data:' + mimeType + ';base64,' + currentImageBase64;
+                        result.classList.add('active');
+                        console.log('Image loaded successfully');
+                    } else {
+                        console.error('No inlineData found in parts');
+                        throw new Error('No image generated in the response.');
+                    }
+                } else {
+                    console.error('Unexpected response structure:', data);
+                    throw new Error('Unexpected response format from API');
+                }
+            })
+            .catch(function(err) {
+                showError(err.message);
+            })
+            .then(function() {
+                loading.classList.remove('active');
+                if (submitBtn) submitBtn.disabled = false;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('apiKeyToggle').addEventListener('click', toggleApiKey);
+
+            document.getElementById('tabTextToImage').addEventListener('click', function() {
+                switchTab('text-to-image');
+            });
+            document.getElementById('tabImageToImage').addEventListener('click', function() {
+                switchTab('image-to-image');
+            });
+
+            var examplePrompts = document.querySelectorAll('.example-prompt');
+            examplePrompts.forEach(function(prompt) {
+                prompt.addEventListener('click', function() {
+                    var target = this.getAttribute('data-target');
+                    var text = this.getAttribute('data-text');
+                    setPrompt(target, text);
+                });
+            });
+
+            var uploadArea = document.getElementById('uploadArea');
+            var imageUpload = document.getElementById('imageUpload');
+
+            uploadArea.addEventListener('click', function() {
+                imageUpload.click();
+            });
+
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                var file = e.dataTransfer.files[0];
+                if (file && file.type.indexOf('image/') === 0) {
+                    handleImageUpload(file);
+                }
+            });
+
+            imageUpload.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    handleImageUpload(file);
+                }
+            });
+
+            document.getElementById('textToImageBtn').addEventListener('click', function() {
+                var apiKey = document.getElementById('apiKey').value.trim();
+                var prompt = document.getElementById('textPrompt').value.trim();
+                
+                if (!apiKey) {
+                    showError('Please enter your API key');
+                    return;
+                }
+                
+                if (!prompt) {
+                    showError('Please enter a prompt');
+                    return;
+                }
+                
+				logPromptToSheet(prompt, "Text-to-Image");
+                generateImage(apiKey, prompt, null);
+            });
+
+            document.getElementById('imageToImageBtn').addEventListener('click', function() {
+                var apiKey = document.getElementById('apiKey').value.trim();
+                var prompt = document.getElementById('imagePrompt').value.trim();
+                
+                if (!apiKey) {
+                    showError('Please enter your API key');
+                    return;
+                }
+                
+                if (!prompt) {
+                    showError('Please enter a transformation prompt');
+                    return;
+                }
+                
+                if (!uploadedImageBase64) {
+                    showError('Please upload an image first');
+                    return;
+                }
+                
+				logPromptToSheet(prompt, "Image-to-Image");
+                generateImage(apiKey, prompt, uploadedImageBase64);
+            });
+
+            var downloadBtn = document.getElementById('downloadBtn');
+            console.log('Download button found:', downloadBtn);
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', function() {
+                    console.log('Download button clicked via event listener');
+                    downloadResult();
+                });
+            } else {
+                console.error('Download button NOT found');
+            }
+            
+            console.log('All event listeners attached successfully');
+        });
+    </script>
+</body>
+</html>
