@@ -462,23 +462,6 @@
             <button class="download-btn" id="downloadBtn">⬇️ Download Image</button>
         </div>
     </div>
-	
-	<script>
-		function logPromptToSheet(prompt, type) {
-		fetch("https://script.google.com/macros/s/AKfycbyu7_41DFGLTC-Py1BuLFWiTYJEyFuQCF7WbKxObaTCiADfG1HFlsWLUTaP9ZnHJTbgXg/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            prompt: prompt,
-            type: type
-        })
-    })
-    .then(res => res.text())
-    .then(res => console.log("Logged to Sheet:", res))
-    .catch(err => console.error("Error logging prompt:", err));
-}
-
-	</script>
     <script>
         var currentImageBase64 = null;
         var uploadedImageBase64 = null;
@@ -787,5 +770,6 @@
 </body>
 
 </html>
+
 
 
